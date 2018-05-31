@@ -1,0 +1,6 @@
+.ssh_config
+.vagrant/
+
+dl/
+pkg/
+kubeadm.log

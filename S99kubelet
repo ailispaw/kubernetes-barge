@@ -1,0 +1,37 @@
+#!/bin/sh
+
+if [ -f /etc/kubernetes/kubeadm.conf ]; then
+  source /etc/kubernetes/kubeadm.conf
+fi
+
+case "$1" in
+  start)
+    echo -n "Starting kubelet... "
+    start-stop-daemon -S -q -m -b -p /var/run/kubelet.pid --startas /bin/bash -- -c \
+      "exec /opt/bin/kubelet \
+        ${KUBELET_KUBECONFIG_ARGS} \
+        ${KUBELET_SYSTEM_PODS_ARGS} \
+        ${KUBELET_NETWORK_ARGS} \
+        ${KUBELET_DNS_ARGS} \
+        ${KUBELET_AUTHZ_ARGS} \
+        ${KUBELET_CGROUP_ARGS} \
+        ${KUBELET_CADVISOR_ARGS} \
+        ${KUBELET_CERTIFICATE_ARGS} \
+        ${KUBELET_EXTRA_ARGS} > /var/log/kubelet.log 2>&1"
+
+    [ $? -eq 0 ] && echo "OK" || echo "FAIL"
+    ;;
+  stop)
+    echo -n "Stopping kubelet... "
+    start-stop-daemon -K -q -p /var/run/kubelet.pid
+    [ $? -eq 0 ] && echo "OK" || echo "FAIL"
+    ;;
+  restart)
+    "$0" stop
+    sleep 1
+    "$0" start
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart}"
+    ;;
+esac
