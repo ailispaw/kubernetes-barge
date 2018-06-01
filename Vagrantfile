@@ -112,7 +112,7 @@ Vagrant.configure(2) do |config|
           sleep 1
         done
 
-        kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/v0.10.0/Documentation/kube-flannel.yml
+        kubectl apply -f /vagrant/kube-flannel.yml
 
         kubectl completion bash | sudo tee /etc/bash_completion.d/kubectl >/dev/null
       EOT
