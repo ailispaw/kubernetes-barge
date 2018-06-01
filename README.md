@@ -52,6 +52,35 @@ root@sample-pod:/# ls
 bin  boot  dev  etc  home  lib  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
 root@sample-pod:/# exit
 exit
+[bargee@master ~]$ kubectl port-forward sample-pod 8888:80 >/dev/null 2>&1 &
+[1] 29425
+[bargee@master ~]$ wget -qO- http://localhost:8888
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+[bargee@master ~]$ kill 29425
 [bargee@master ~]$ kubectl delete -f /vagrant/pods/sample-pod.yml
 pod "sample-pod" deleted
 [bargee@master ~]$ kubectl get pods
