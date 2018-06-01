@@ -35,6 +35,29 @@ KubeDNS is running at https://192.168.65.100:6443/api/v1/namespaces/kube-system/
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 ```
 
+## Create a Sample Pod
+
+```
+[bargee@master ~]$ kubectl create -f /vagrant/pods/sample-pod.yml
+pod "sample-pod" created
+[bargee@master ~]$ kubectl get pods
+NAME         READY     STATUS    RESTARTS   AGE
+sample-pod   1/1       Running   0          18s
+[bargee@master ~]$ kubectl get pods -o wide
+NAME         READY     STATUS    RESTARTS   AGE       IP           NODE
+sample-pod   1/1       Running   0          49s       10.244.1.2   node-01
+[bargee@master ~]$ kubectl logs sample-pod
+[bargee@master ~]$ kubectl exec -it sample-pod bash
+root@sample-pod:/# ls
+bin  boot  dev  etc  home  lib  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+root@sample-pod:/# exit
+exit
+[bargee@master ~]$ kubectl delete -f /vagrant/pods/sample-pod.yml
+pod "sample-pod" deleted
+[bargee@master ~]$ kubectl get pods
+No resources found.
+```
+
 ## Scale Up
 
 You can add more Nodes to modify the following line in the `Vagrantfile`.
