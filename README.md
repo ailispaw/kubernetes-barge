@@ -23,7 +23,7 @@ It will create one Master VM and one Node VM by default.
 
 ```
 $ vagrant ssh master
-Welcome to Barge 2.8.2, Docker version 17.03.2-ce, build f5ec1e2
+Welcome to Barge 2.9.0, Docker version 17.03.2-ce, build f5ec1e2
 [bargee@master ~]$ kubectl get nodes
 NAME      STATUS    ROLES     AGE       VERSION
 master    Ready     master    2m        v1.10.3
@@ -103,7 +103,7 @@ $ vagrant up node-02
 
 ```
 $ vagrant ssh master
-Welcome to Barge 2.8.2, Docker version 17.03.2-ce, build f5ec1e2
+Welcome to Barge 2.9.0, Docker version 17.03.2-ce, build f5ec1e2
 [bargee@master ~]$ kubectl get nodes
 NAME      STATUS    ROLES     AGE       VERSION
 master    Ready     master    5m        v1.10.3

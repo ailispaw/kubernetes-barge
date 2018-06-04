@@ -17,6 +17,7 @@ K8S_VERSION    = "v1.10.3"
 
 Vagrant.configure(2) do |config|
   config.vm.box = "ailispaw/barge"
+  config.vm.box_version = ">= 2.9.0"
 
   config.vm.provider :virtualbox do |vb|
     vb.memory = 2048
