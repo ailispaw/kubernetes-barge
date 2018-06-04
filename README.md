@@ -35,6 +35,58 @@ KubeDNS is running at https://192.168.65.100:6443/api/v1/namespaces/kube-system/
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 ```
 
+## Create a Sample Pod
+
+```
+[bargee@master ~]$ kubectl create -f /vagrant/pods/sample-pod.yml
+pod "sample-pod" created
+[bargee@master ~]$ kubectl get pods
+NAME         READY     STATUS    RESTARTS   AGE
+sample-pod   1/1       Running   0          18s
+[bargee@master ~]$ kubectl get pods -o wide
+NAME         READY     STATUS    RESTARTS   AGE       IP           NODE
+sample-pod   1/1       Running   0          49s       10.244.1.2   node-01
+[bargee@master ~]$ kubectl logs sample-pod
+[bargee@master ~]$ kubectl exec -it sample-pod bash
+root@sample-pod:/# ls
+bin  boot  dev  etc  home  lib  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+root@sample-pod:/# exit
+exit
+[bargee@master ~]$ kubectl port-forward sample-pod 8888:80 >/dev/null 2>&1 &
+[1] 29425
+[bargee@master ~]$ wget -qO- http://localhost:8888
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+[bargee@master ~]$ kill 29425
+[bargee@master ~]$ kubectl delete -f /vagrant/pods/sample-pod.yml
+pod "sample-pod" deleted
+[bargee@master ~]$ kubectl get pods
+No resources found.
+```
+
 ## Scale Up
 
 You can add more Nodes to modify the following line in the `Vagrantfile`.

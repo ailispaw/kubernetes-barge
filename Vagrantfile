@@ -63,6 +63,8 @@ Vagrant.configure(2) do |config|
       mkdir -p /opt/pkg/${VERSION}/
       cp /vagrant/pkg/barge-pkg-*-${VERSION}.tar.gz /opt/pkg/${VERSION}/ || true
       pkg build findutils
+      pkg build socat
+      pkg build nsenter || pkg build util-linux -e BR2_PACKAGE_UTIL_LINUX_NSENTER=y
       mkdir -p /vagrant/pkg/
       cp /opt/pkg/${VERSION}/barge-pkg-*-${VERSION}.tar.gz /vagrant/pkg/
     EOT
@@ -72,6 +74,8 @@ Vagrant.configure(2) do |config|
     sh.inline = <<-EOT
       # kubelet needs find instead of busybox find.
       pkg install findutils
+      pkg install socat
+      pkg install nsenter || pkg install util-linux
     EOT
   end
 
