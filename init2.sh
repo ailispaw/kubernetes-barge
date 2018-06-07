@@ -8,3 +8,8 @@ for i in lib/cni lib/dockershim lib/etcd lib/kubelet log/containers log/pods ; d
   mkdir -p "/mnt/data/var/$i"
   ln -s "/mnt/data/var/$i" "/var/$i"
 done
+
+# kubelet needs find instead of busybox find.
+pkg install findutils
+pkg install socat
+pkg install nsenter || pkg install util-linux

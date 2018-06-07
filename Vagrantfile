@@ -57,9 +57,6 @@ Vagrant.configure(2) do |config|
       cp /vagrant/kubeadm.conf /etc/kubernetes/
       cp /vagrant/S99kubelet /etc/init.d/
 
-      bash /vagrant/init2.sh
-      cat /vagrant/init2.sh >> /etc/init.d/init.sh
-
       source /etc/os-release
       mkdir -p /opt/pkg/${VERSION}/
       cp /vagrant/pkg/barge-pkg-*-${VERSION}.tar.gz /opt/pkg/${VERSION}/ || true
@@ -68,15 +65,9 @@ Vagrant.configure(2) do |config|
       pkg build nsenter || pkg build util-linux -e BR2_PACKAGE_UTIL_LINUX_NSENTER=y
       mkdir -p /vagrant/pkg/
       cp /opt/pkg/${VERSION}/barge-pkg-*-${VERSION}.tar.gz /vagrant/pkg/
-    EOT
-  end
 
-  config.vm.provision :shell, run: "always" do |sh|
-    sh.inline = <<-EOT
-      # kubelet needs find instead of busybox find.
-      pkg install findutils
-      pkg install socat
-      pkg install nsenter || pkg install util-linux
+      bash /vagrant/init2.sh
+      cat /vagrant/init2.sh >> /etc/init.d/init.sh
     EOT
   end
 
