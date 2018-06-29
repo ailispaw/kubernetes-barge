@@ -38,7 +38,7 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 ## Create a Sample Pod
 
 ```
-[bargee@master ~]$ kubectl create -f /vagrant/pods/sample-pod.yml
+[bargee@master ~]$ kubectl create -f /vagrant/samples/sample-pod.yml
 pod "sample-pod" created
 [bargee@master ~]$ kubectl get pods
 NAME         READY     STATUS    RESTARTS   AGE
@@ -81,7 +81,7 @@ Commercial support is available at
 </body>
 </html>
 [bargee@master ~]$ kill 29425
-[bargee@master ~]$ kubectl delete -f /vagrant/pods/sample-pod.yml
+[bargee@master ~]$ kubectl delete -f /vagrant/samples/sample-pod.yml
 pod "sample-pod" deleted
 [bargee@master ~]$ kubectl get pods
 No resources found.
