@@ -39,7 +39,7 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 
 ```
 [bargee@master ~]$ kubectl create -f /vagrant/samples/sample-pod.yml
-pod "sample-pod" created
+pod/sample-pod created
 [bargee@master ~]$ kubectl get pods
 NAME         READY     STATUS    RESTARTS   AGE
 sample-pod   1/1       Running   0          18s
