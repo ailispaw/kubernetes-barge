@@ -11,5 +11,6 @@ done
 
 # kubelet needs find instead of busybox find.
 pkg install findutils
+pkg install iproute2
 pkg install socat
 pkg install nsenter || pkg install util-linux

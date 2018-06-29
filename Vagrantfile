@@ -61,6 +61,7 @@ Vagrant.configure(2) do |config|
       mkdir -p /opt/pkg/${VERSION}/
       cp /vagrant/pkg/barge-pkg-*-${VERSION}.tar.gz /opt/pkg/${VERSION}/ || true
       pkg build findutils
+      pkg build iproute2
       pkg build socat
       pkg build nsenter || pkg build util-linux -e BR2_PACKAGE_UTIL_LINUX_NSENTER=y
       mkdir -p /vagrant/pkg/
