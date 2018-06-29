@@ -14,6 +14,7 @@ BASE_IP_ADDR = "192.168.65"
 DOCKER_VERSION = "v17.03.2-ce"
 CNI_VERSION    = "v0.7.1"
 K8S_VERSION    = "v1.11.0"
+OVSCNI_VERSION = "1.0.0-rc1"
 
 Vagrant.configure(2) do |config|
   config.vm.box = "ailispaw/barge"
@@ -55,6 +56,17 @@ Vagrant.configure(2) do |config|
       mkdir -p /opt/cni/bin
       tar -xzf /vagrant/dl/cni-plugins-amd64-#{CNI_VERSION}.tgz -C /opt/cni/bin
 
+      if [ ! -f "/vagrant/dl/ovs-#{OVSCNI_VERSION}" ]; then
+        wget -nv https://github.com/ailispaw/ovs-cni/releases/download/#{OVSCNI_VERSION}/ovs \
+          -O /vagrant/dl/ovs-#{OVSCNI_VERSION}
+        wget -nv https://github.com/ailispaw/ovs-cni/releases/download/#{OVSCNI_VERSION}/centralip \
+          -O /vagrant/dl/centralip-#{OVSCNI_VERSION}
+      fi
+
+      cp -f /vagrant/dl/ovs-#{OVSCNI_VERSION}       /opt/cni/bin/ovs
+      cp -f /vagrant/dl/centralip-#{OVSCNI_VERSION} /opt/cni/bin/centralip
+      chmod +x /opt/cni/bin/{ovs,centralip}
+
       if [ ! -f "/vagrant/dl/crictl-#{K8S_VERSION}-linux-amd64.tar.gz" ]; then
         wget -nv https://github.com/kubernetes-incubator/cri-tools/releases/download/#{K8S_VERSION}/crictl-#{K8S_VERSION}-linux-amd64.tar.gz -O /vagrant/dl/crictl-#{K8S_VERSION}-linux-amd64.tar.gz
       fi
@@ -85,6 +97,20 @@ Vagrant.configure(2) do |config|
 
       bash /vagrant/init2.sh
       cat /vagrant/init2.sh >> /etc/init.d/init.sh
+
+      mkdir -p /etc/cni/net.d
+      cp -f /vagrant/ovs-cni.conf /etc/cni/net.d/ovs-cni.conf
+
+      # modprobe openvswitch
+      docker run -d --net=host --privileged --name openvswitch \
+        -v /lib/modules:/lib/modules:ro \
+        -v /var/log/openvswitch:/var/log/openvswitch \
+        -v /var/lib/openvswitch:/var/lib/openvswitch \
+        -v /var/run/openvswitch:/var/run/openvswitch \
+        -v /etc/openvswitch:/etc/openvswitch \
+        ailispaw/openvswitch:2.8.1-alpine
+
+      docker exec openvswitch ovs-vsctl add-br br0
     EOT
   end
 
@@ -129,8 +155,6 @@ Vagrant.configure(2) do |config|
           sleep 1
         done
 
-        kubectl apply -f /vagrant/kube-flannel.yml
-
         kubectl completion bash | sudo tee /etc/bash_completion.d/kubectl >/dev/null
       EOT
     end
@@ -158,6 +182,15 @@ Vagrant.configure(2) do |config|
           while [ ! -f /etc/kubernetes/pki/ca.crt ]; do
             sleep 1
           done
+
+          sed 's/"192\\.168\\.65\\.#{100+i}"/"192\\.168\\.65\\.100"/g' \
+            -i /etc/cni/net.d/ovs-cni.conf
+          sed 's/"rangeStart":"10\\.244\\.0\\.10"/"rangeStart":"10\\.244\\.#{i}\\.10"/g' \
+            -i /etc/cni/net.d/ovs-cni.conf
+          sed 's/"rangeEnd":"10\\.244\\.0\\.150"/"rangeEnd":"10\\.244\\.#{i}\\.150"/g' \
+            -i /etc/cni/net.d/ovs-cni.conf
+          sed 's/"gateway":"10\\.244\\.0\\.1"/"gateway":"10\\.244\\.#{i}\\.1"/g' \
+            -i /etc/cni/net.d/ovs-cni.conf
 
           echo 'KUBELET_EXTRA_ARGS="--node-ip #{NODE_IP_ADDR[i]}"' >> /etc/kubernetes/kubeadm.conf
           /etc/init.d/S99kubelet start
