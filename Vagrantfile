@@ -35,23 +35,25 @@ Vagrant.configure(2) do |config|
       # https://kubernetes.io/docs/tasks/tools/install-kubeadm
 
       mkdir -p /vagrant/dl
-      if [ ! -f "/vagrant/dl/cni-plugins-amd64-#{CNI_VERSION}.tgz" ]; then
-        wget -nv https://github.com/containernetworking/plugins/releases/download/#{CNI_VERSION}/cni-plugins-amd64-#{CNI_VERSION}.tgz -O /vagrant/dl/cni-plugins-amd64-#{CNI_VERSION}.tgz
-      fi
+
       if [ ! -f "/vagrant/dl/kubeadm-#{K8S_VERSION}" ]; then
         wget -nv https://storage.googleapis.com/kubernetes-release/release/#{K8S_VERSION}/bin/linux/amd64/kubeadm -O /vagrant/dl/kubeadm-#{K8S_VERSION}
         wget -nv https://storage.googleapis.com/kubernetes-release/release/#{K8S_VERSION}/bin/linux/amd64/kubelet -O /vagrant/dl/kubelet-#{K8S_VERSION}
         wget -nv https://storage.googleapis.com/kubernetes-release/release/#{K8S_VERSION}/bin/linux/amd64/kubectl -O /vagrant/dl/kubectl-#{K8S_VERSION}
       fi
 
-      rm -rf /opt/cni/bin
-      mkdir -p /opt/cni/bin
-      tar -xzf /vagrant/dl/cni-plugins-amd64-#{CNI_VERSION}.tgz -C /opt/cni/bin
-
       cp -f /vagrant/dl/kubeadm-#{K8S_VERSION} /opt/bin/kubeadm
       cp -f /vagrant/dl/kubelet-#{K8S_VERSION} /opt/bin/kubelet
       cp -f /vagrant/dl/kubectl-#{K8S_VERSION} /opt/bin/kubectl
       chmod +x /opt/bin/{kubeadm,kubelet,kubectl}
+
+      if [ ! -f "/vagrant/dl/cni-plugins-amd64-#{CNI_VERSION}.tgz" ]; then
+        wget -nv https://github.com/containernetworking/plugins/releases/download/#{CNI_VERSION}/cni-plugins-amd64-#{CNI_VERSION}.tgz -O /vagrant/dl/cni-plugins-amd64-#{CNI_VERSION}.tgz
+      fi
+
+      rm -rf /opt/cni/bin
+      mkdir -p /opt/cni/bin
+      tar -xzf /vagrant/dl/cni-plugins-amd64-#{CNI_VERSION}.tgz -C /opt/cni/bin
 
       mkdir -p /etc/kubernetes
       cp /vagrant/kubeadm.conf /etc/kubernetes/
