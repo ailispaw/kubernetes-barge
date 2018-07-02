@@ -13,4 +13,5 @@ done
 pkg install findutils
 pkg install iproute2
 pkg install socat
-pkg install nsenter || pkg install util-linux
+pkg install nsenter
+pkg install schedutils
