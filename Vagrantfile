@@ -185,11 +185,11 @@ Vagrant.configure(2) do |config|
 
           sed 's/"192\\.168\\.65\\.#{100+i}"/"192\\.168\\.65\\.100"/g' \
             -i /etc/cni/net.d/ovs-cni.conf
-          sed 's/"rangeStart":"10\\.244\\.0\\.10"/"rangeStart":"10\\.244\\.#{i}\\.10"/g' \
+          sed 's/"rangeStart":"10\\.100\\.0\\.10"/"rangeStart":"10\\.100\\.#{i}\\.10"/g' \
             -i /etc/cni/net.d/ovs-cni.conf
-          sed 's/"rangeEnd":"10\\.244\\.0\\.150"/"rangeEnd":"10\\.244\\.#{i}\\.150"/g' \
+          sed 's/"rangeEnd":"10\\.100\\.0\\.150"/"rangeEnd":"10\\.100\\.#{i}\\.150"/g' \
             -i /etc/cni/net.d/ovs-cni.conf
-          sed 's/"gateway":"10\\.244\\.0\\.1"/"gateway":"10\\.244\\.#{i}\\.1"/g' \
+          sed 's/"gateway":"10\\.100\\.0\\.1"/"gateway":"10\\.100\\.#{i}\\.1"/g' \
             -i /etc/cni/net.d/ovs-cni.conf
 
           echo 'KUBELET_EXTRA_ARGS="--node-ip #{NODE_IP_ADDR[i]}"' >> /etc/kubernetes/kubeadm.conf
