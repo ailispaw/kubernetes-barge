@@ -127,19 +127,44 @@ Vagrant.configure(2) do |config|
 
     node.vm.provision :shell do |sh|
       sh.inline = <<-EOT
+        set -e
+
         sed 's/127\\.0\\.1\\.1.*#{NODE_HOSTNAME[0]}.*/#{NODE_IP_ADDR[0]} #{NODE_HOSTNAME[0]}/' \
           -i /etc/hosts
 
-        setsid kubeadm init --pod-network-cidr=10.244.0.0/16 \
-          --apiserver-advertise-address #{NODE_IP_ADDR[0]} >/vagrant/kubeadm.log 2>&1 &
+        kubeadm config images pull
 
-        echo "Waiting for kubeadm to generate the configuration file for kubelet"
-        while [ ! -f /etc/kubernetes/kubelet.conf ]; do
-          sleep 1
-        done
+        kubeadm alpha phase preflight master || true
+        kubeadm alpha phase certs all --apiserver-advertise-address #{NODE_IP_ADDR[0]}
+        kubeadm alpha phase kubeconfig all --apiserver-advertise-address #{NODE_IP_ADDR[0]}
+        kubeadm alpha phase controlplane all --apiserver-advertise-address #{NODE_IP_ADDR[0]} \
+          --pod-network-cidr=10.244.0.0/16
+        kubeadm alpha phase etcd local
 
         echo 'KUBELET_EXTRA_ARGS="--node-ip #{NODE_IP_ADDR[0]}"' >> /etc/kubernetes/kubeadm.conf
         /etc/init.d/S99kubelet start
+
+        kubeadm alpha phase mark-master
+
+        # kubeadm alpha phase upload-config
+        kubeadm config upload from-flags --apiserver-advertise-address #{NODE_IP_ADDR[0]} \
+          --pod-network-cidr=10.244.0.0/16
+
+        # kubeadm alpha phase kubelet
+        kubeadm config view > /vagrant/kubeadm.yml
+        kubeadm alpha phase kubelet write-env-file --config /vagrant/kubeadm.yml
+        kubeadm alpha phase kubelet config write-to-disk --config /vagrant/kubeadm.yml
+        kubeadm alpha phase kubelet config upload --config /vagrant/kubeadm.yml
+
+        # kubeadm alpha phase patchnode
+        kubectl --kubeconfig /etc/kubernetes/admin.conf annotate nodes master \
+          kubeadm.alpha.kubernetes.io/cri-socket="/var/run/dockershim.sock"
+
+        kubeadm alpha phase bootstrap-token all
+        kubeadm alpha phase addon all --apiserver-advertise-address #{NODE_IP_ADDR[0]} \
+          --pod-network-cidr=10.244.0.0/16
+
+        kubeadm token create --print-join-command > /vagrant/join-command.sh
       EOT
     end
 
@@ -174,9 +199,8 @@ Vagrant.configure(2) do |config|
           sed 's/127\\.0\\.1\\.1.*#{NODE_HOSTNAME[i]}.*/#{NODE_IP_ADDR[i]} #{NODE_HOSTNAME[i]}/' \
             -i /etc/hosts
 
-          KUBEADM_JOIN="$(grep 'kubeadm join' /vagrant/kubeadm.log)"
-          echo "${KUBEADM_JOIN}"
-          setsid ${KUBEADM_JOIN} >/var/log/kubeadm.log 2>&1 &
+          cat /vagrant/join-command.sh
+          setsid sh /vagrant/join-command.sh >/var/log/kubeadm.log 2>&1 &
 
           echo "Waiting for kubeadm to get the certificate for kubelet"
           while [ ! -f /etc/kubernetes/pki/ca.crt ]; do
