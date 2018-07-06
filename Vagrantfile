@@ -135,11 +135,31 @@ Vagrant.configure(2) do |config|
         kubeadm config images pull
 
         kubeadm alpha phase preflight master || true
-        kubeadm alpha phase certs all --apiserver-advertise-address #{NODE_IP_ADDR[0]}
+
+        # kubeadm alpha phase certs all --apiserver-advertise-address #{NODE_IP_ADDR[0]}
+        kubeadm alpha phase certs ca
+        kubeadm alpha phase certs apiserver --apiserver-advertise-address #{NODE_IP_ADDR[0]}
+        kubeadm alpha phase certs apiserver-kubelet-client
+
+        kubeadm alpha phase certs etcd-ca --config /vagrant/etcd-server.yml
+        kubeadm alpha phase certs etcd-server --config /vagrant/etcd-server.yml
+        kubeadm alpha phase certs etcd-peer --config /vagrant/etcd-server.yml
+        kubeadm alpha phase certs etcd-healthcheck-client --config /vagrant/etcd-server.yml
+        kubeadm alpha phase certs apiserver-etcd-client --config /vagrant/etcd-server.yml
+
+        kubeadm alpha phase certs sa
+        kubeadm alpha phase certs front-proxy-ca
+        kubeadm alpha phase certs front-proxy-client
+
         kubeadm alpha phase kubeconfig all --apiserver-advertise-address #{NODE_IP_ADDR[0]}
         kubeadm alpha phase controlplane all --apiserver-advertise-address #{NODE_IP_ADDR[0]} \
           --pod-network-cidr=10.244.0.0/16
         kubeadm alpha phase etcd local
+
+        sed 's/--advertise-client-urls=https:\\/\\/127\\.0\\.0\\.1:2379/--advertise-client-urls=https:\\/\\/192\\.168\\.65\\.100:2379/' \
+          -i /etc/kubernetes/manifests/etcd.yaml
+        sed 's/--listen-client-urls=https:\\/\\/127\\.0\\.0\\.1:2379/--listen-client-urls=https:\\/\\/0\\.0\\.0\\.0:2379/' \
+          -i /etc/kubernetes/manifests/etcd.yaml
 
         echo 'KUBELET_EXTRA_ARGS="--node-ip #{NODE_IP_ADDR[0]}"' >> /etc/kubernetes/kubeadm.conf
         /etc/init.d/S99kubelet start
@@ -165,6 +185,11 @@ Vagrant.configure(2) do |config|
           --pod-network-cidr=10.244.0.0/16
 
         kubeadm token create --print-join-command > /vagrant/join-command.sh
+
+        mkdir -p /vagrant/etcd
+        cp /etc/kubernetes/pki/etcd/healthcheck-client.crt /vagrant/etcd/healthcheck-client.crt
+        cp /etc/kubernetes/pki/etcd/healthcheck-client.key /vagrant/etcd/healthcheck-client.key
+        cp /etc/kubernetes/pki/etcd/ca.crt                 /vagrant/etcd/ca.crt
       EOT
     end
 
@@ -196,6 +221,11 @@ Vagrant.configure(2) do |config|
 
       node.vm.provision :shell do |sh|
         sh.inline = <<-EOT
+          mkdir -p /etc/kubernetes/pki/etcd
+          cp /vagrant/etcd/healthcheck-client.crt /etc/kubernetes/pki/etcd/healthcheck-client.crt
+          cp /vagrant/etcd/healthcheck-client.key /etc/kubernetes/pki/etcd/healthcheck-client.key
+          cp /vagrant/etcd/ca.crt                 /etc/kubernetes/pki/etcd/ca.crt
+
           sed 's/127\\.0\\.1\\.1.*#{NODE_HOSTNAME[i]}.*/#{NODE_IP_ADDR[i]} #{NODE_HOSTNAME[i]}/' \
             -i /etc/hosts
 
@@ -208,12 +238,6 @@ Vagrant.configure(2) do |config|
           done
 
           sed 's/"192\\.168\\.65\\.#{100+i}"/"192\\.168\\.65\\.100"/g' \
-            -i /etc/cni/net.d/ovs-cni.conf
-          sed 's/"rangeStart":"10\\.100\\.0\\.10"/"rangeStart":"10\\.100\\.#{i}\\.10"/g' \
-            -i /etc/cni/net.d/ovs-cni.conf
-          sed 's/"rangeEnd":"10\\.100\\.0\\.150"/"rangeEnd":"10\\.100\\.#{i}\\.150"/g' \
-            -i /etc/cni/net.d/ovs-cni.conf
-          sed 's/"gateway":"10\\.100\\.0\\.1"/"gateway":"10\\.100\\.#{i}\\.1"/g' \
             -i /etc/cni/net.d/ovs-cni.conf
 
           echo 'KUBELET_EXTRA_ARGS="--node-ip #{NODE_IP_ADDR[i]}"' >> /etc/kubernetes/kubeadm.conf
