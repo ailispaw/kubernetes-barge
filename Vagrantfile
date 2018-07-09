@@ -147,6 +147,18 @@ Vagrant.configure(2) do |config|
         kubeadm alpha phase certs etcd-healthcheck-client --config /vagrant/etcd-server.yml
         kubeadm alpha phase certs apiserver-etcd-client --config /vagrant/etcd-server.yml
 
+        wget -nv https://pkg.cfssl.org/R1.2/cfssl_linux-amd64 -O /opt/bin/cfssl
+        wget -nv https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64 -O /opt/bin/cfssljson
+        chmod +x /opt/bin/{cfssl,cfssljson}
+
+        mkdir -p /vagrant/etcd-certs
+        cfssl gencert -ca=/etc/kubernetes/pki/etcd/ca.crt -ca-key=/etc/kubernetes/pki/etcd/ca.key \
+          -config=/vagrant/etcd-certs/ca-config.json -profile=client \
+          /vagrant/etcd-certs/client.json | cfssljson -bare /vagrant/etcd-certs/ovs-cni-client
+        cp /vagrant/etcd-certs/ovs-cni-client.pem     /etc/kubernetes/pki/etcd/ovs-cni-client.crt
+        cp /vagrant/etcd-certs/ovs-cni-client-key.pem /etc/kubernetes/pki/etcd/ovs-cni-client.key
+        cp /etc/kubernetes/pki/etcd/ca.crt /vagrant/etcd-certs/ca.crt
+
         kubeadm alpha phase certs sa
         kubeadm alpha phase certs front-proxy-ca
         kubeadm alpha phase certs front-proxy-client
@@ -185,11 +197,6 @@ Vagrant.configure(2) do |config|
           --pod-network-cidr=10.244.0.0/16
 
         kubeadm token create --print-join-command > /vagrant/join-command.sh
-
-        mkdir -p /vagrant/etcd
-        cp /etc/kubernetes/pki/etcd/healthcheck-client.crt /vagrant/etcd/healthcheck-client.crt
-        cp /etc/kubernetes/pki/etcd/healthcheck-client.key /vagrant/etcd/healthcheck-client.key
-        cp /etc/kubernetes/pki/etcd/ca.crt                 /vagrant/etcd/ca.crt
       EOT
     end
 
@@ -222,9 +229,9 @@ Vagrant.configure(2) do |config|
       node.vm.provision :shell do |sh|
         sh.inline = <<-EOT
           mkdir -p /etc/kubernetes/pki/etcd
-          cp /vagrant/etcd/healthcheck-client.crt /etc/kubernetes/pki/etcd/healthcheck-client.crt
-          cp /vagrant/etcd/healthcheck-client.key /etc/kubernetes/pki/etcd/healthcheck-client.key
-          cp /vagrant/etcd/ca.crt                 /etc/kubernetes/pki/etcd/ca.crt
+          cp /vagrant/etcd-certs/ovs-cni-client.pem     /etc/kubernetes/pki/etcd/ovs-cni-client.crt
+          cp /vagrant/etcd-certs/ovs-cni-client-key.pem /etc/kubernetes/pki/etcd/ovs-cni-client.key
+          cp /vagrant/etcd-certs/ca.crt                 /etc/kubernetes/pki/etcd/ca.crt
 
           sed 's/127\\.0\\.1\\.1.*#{NODE_HOSTNAME[i]}.*/#{NODE_IP_ADDR[i]} #{NODE_HOSTNAME[i]}/' \
             -i /etc/hosts

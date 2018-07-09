@@ -4,3 +4,7 @@
 dl/
 pkg/
 join-command.sh
+
+etcd-certs/*
+!etcd-certs/ca-config.json
+!etcd-certs/client.json
