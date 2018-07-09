@@ -13,7 +13,7 @@ BASE_IP_ADDR = "192.168.65"
 
 DOCKER_VERSION = "v17.03.2-ce"
 CNI_VERSION    = "v0.7.1"
-K8S_VERSION    = "v1.10.3"
+K8S_VERSION    = "v1.11.0"
 
 Vagrant.configure(2) do |config|
   config.vm.box = "ailispaw/barge"
@@ -55,6 +55,13 @@ Vagrant.configure(2) do |config|
       mkdir -p /opt/cni/bin
       tar -xzf /vagrant/dl/cni-plugins-amd64-#{CNI_VERSION}.tgz -C /opt/cni/bin
 
+      if [ ! -f "/vagrant/dl/crictl-#{K8S_VERSION}-linux-amd64.tar.gz" ]; then
+        wget -nv https://github.com/kubernetes-incubator/cri-tools/releases/download/#{K8S_VERSION}/crictl-#{K8S_VERSION}-linux-amd64.tar.gz -O /vagrant/dl/crictl-#{K8S_VERSION}-linux-amd64.tar.gz
+      fi
+
+      rm -f /opt/bin/crictl
+      tar -xzf /vagrant/dl/crictl-#{K8S_VERSION}-linux-amd64.tar.gz -C /opt/bin
+
       mkdir -p /etc/kubernetes
       cp /vagrant/kubeadm.conf /etc/kubernetes/
       cp /vagrant/S99kubelet /etc/init.d/
@@ -65,7 +72,14 @@ Vagrant.configure(2) do |config|
       pkg build findutils
       pkg build iproute2
       pkg build socat
-      pkg build nsenter || pkg build util-linux -e BR2_PACKAGE_UTIL_LINUX_NSENTER=y
+      pkg build nsenter || (\
+        pkg build util-linux -e BR2_PACKAGE_UTIL_LINUX_NSENTER=y && \
+        cd /opt/pkg/${VERSION}/ && \
+        mv barge-pkg-util-linux-${VERSION}.tar.gz barge-pkg-nsenter-${VERSION}.tar.gz)
+      pkg build schedutils || (\
+        pkg build util-linux -e BR2_PACKAGE_UTIL_LINUX_SCHEDUTILS=y && \
+        cd /opt/pkg/${VERSION}/ && \
+        mv barge-pkg-util-linux-${VERSION}.tar.gz barge-pkg-schedutils-${VERSION}.tar.gz)
       mkdir -p /vagrant/pkg/
       cp /opt/pkg/${VERSION}/barge-pkg-*-${VERSION}.tar.gz /vagrant/pkg/
 
