@@ -14,6 +14,7 @@ BASE_IP_ADDR = "192.168.65"
 DOCKER_VERSION = "v17.03.2-ce"
 CNI_VERSION    = "v0.7.1"
 K8S_VERSION    = "v1.11.0"
+OVSCNI_VERSION = "1.0.0-rc1"
 
 Vagrant.configure(2) do |config|
   config.vm.box = "ailispaw/barge"
@@ -55,6 +56,17 @@ Vagrant.configure(2) do |config|
       mkdir -p /opt/cni/bin
       tar -xzf /vagrant/dl/cni-plugins-amd64-#{CNI_VERSION}.tgz -C /opt/cni/bin
 
+      if [ ! -f "/vagrant/dl/ovs-#{OVSCNI_VERSION}" ]; then
+        wget -nv https://github.com/ailispaw/ovs-cni/releases/download/#{OVSCNI_VERSION}/ovs \
+          -O /vagrant/dl/ovs-#{OVSCNI_VERSION}
+        wget -nv https://github.com/ailispaw/ovs-cni/releases/download/#{OVSCNI_VERSION}/centralip \
+          -O /vagrant/dl/centralip-#{OVSCNI_VERSION}
+      fi
+
+      cp -f /vagrant/dl/ovs-#{OVSCNI_VERSION}       /opt/cni/bin/ovs
+      cp -f /vagrant/dl/centralip-#{OVSCNI_VERSION} /opt/cni/bin/centralip
+      chmod +x /opt/cni/bin/{ovs,centralip}
+
       if [ ! -f "/vagrant/dl/crictl-#{K8S_VERSION}-linux-amd64.tar.gz" ]; then
         wget -nv https://github.com/kubernetes-incubator/cri-tools/releases/download/#{K8S_VERSION}/crictl-#{K8S_VERSION}-linux-amd64.tar.gz -O /vagrant/dl/crictl-#{K8S_VERSION}-linux-amd64.tar.gz
       fi
@@ -85,6 +97,20 @@ Vagrant.configure(2) do |config|
 
       bash /vagrant/init2.sh
       cat /vagrant/init2.sh >> /etc/init.d/init.sh
+
+      mkdir -p /etc/cni/net.d
+      cp -f /vagrant/ovs-cni.conf /etc/cni/net.d/ovs-cni.conf
+
+      # modprobe openvswitch
+      docker run -d --net=host --privileged --name openvswitch \
+        -v /lib/modules:/lib/modules:ro \
+        -v /var/log/openvswitch:/var/log/openvswitch \
+        -v /var/lib/openvswitch:/var/lib/openvswitch \
+        -v /var/run/openvswitch:/var/run/openvswitch \
+        -v /etc/openvswitch:/etc/openvswitch \
+        ailispaw/openvswitch:2.8.1-alpine
+
+      docker exec openvswitch ovs-vsctl add-br br0
     EOT
   end
 
@@ -101,19 +127,76 @@ Vagrant.configure(2) do |config|
 
     node.vm.provision :shell do |sh|
       sh.inline = <<-EOT
+        set -e
+
         sed 's/127\\.0\\.1\\.1.*#{NODE_HOSTNAME[0]}.*/#{NODE_IP_ADDR[0]} #{NODE_HOSTNAME[0]}/' \
           -i /etc/hosts
 
-        setsid kubeadm init --pod-network-cidr=10.244.0.0/16 \
-          --apiserver-advertise-address #{NODE_IP_ADDR[0]} >/vagrant/kubeadm.log 2>&1 &
+        kubeadm config images pull
 
-        echo "Waiting for kubeadm to generate the configuration file for kubelet"
-        while [ ! -f /etc/kubernetes/kubelet.conf ]; do
-          sleep 1
-        done
+        kubeadm alpha phase preflight master || true
+
+        # kubeadm alpha phase certs all --apiserver-advertise-address #{NODE_IP_ADDR[0]}
+        kubeadm alpha phase certs ca
+        kubeadm alpha phase certs apiserver --apiserver-advertise-address #{NODE_IP_ADDR[0]}
+        kubeadm alpha phase certs apiserver-kubelet-client
+
+        kubeadm alpha phase certs etcd-ca --config /vagrant/etcd-server.yml
+        kubeadm alpha phase certs etcd-server --config /vagrant/etcd-server.yml
+        kubeadm alpha phase certs etcd-peer --config /vagrant/etcd-server.yml
+        kubeadm alpha phase certs etcd-healthcheck-client --config /vagrant/etcd-server.yml
+        kubeadm alpha phase certs apiserver-etcd-client --config /vagrant/etcd-server.yml
+
+        wget -nv https://pkg.cfssl.org/R1.2/cfssl_linux-amd64 -O /opt/bin/cfssl
+        wget -nv https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64 -O /opt/bin/cfssljson
+        chmod +x /opt/bin/{cfssl,cfssljson}
+
+        mkdir -p /vagrant/etcd-certs
+        cfssl gencert -ca=/etc/kubernetes/pki/etcd/ca.crt -ca-key=/etc/kubernetes/pki/etcd/ca.key \
+          -config=/vagrant/etcd-certs/ca-config.json -profile=client \
+          /vagrant/etcd-certs/client.json | cfssljson -bare /vagrant/etcd-certs/ovs-cni-client
+        cp /vagrant/etcd-certs/ovs-cni-client.pem     /etc/kubernetes/pki/etcd/ovs-cni-client.crt
+        cp /vagrant/etcd-certs/ovs-cni-client-key.pem /etc/kubernetes/pki/etcd/ovs-cni-client.key
+        cp /etc/kubernetes/pki/etcd/ca.crt /vagrant/etcd-certs/ca.crt
+
+        kubeadm alpha phase certs sa
+        kubeadm alpha phase certs front-proxy-ca
+        kubeadm alpha phase certs front-proxy-client
+
+        kubeadm alpha phase kubeconfig all --apiserver-advertise-address #{NODE_IP_ADDR[0]}
+        kubeadm alpha phase controlplane all --apiserver-advertise-address #{NODE_IP_ADDR[0]} \
+          --pod-network-cidr=10.244.0.0/16
+        kubeadm alpha phase etcd local
+
+        sed 's/--advertise-client-urls=https:\\/\\/127\\.0\\.0\\.1:2379/--advertise-client-urls=https:\\/\\/192\\.168\\.65\\.100:2379/' \
+          -i /etc/kubernetes/manifests/etcd.yaml
+        sed 's/--listen-client-urls=https:\\/\\/127\\.0\\.0\\.1:2379/--listen-client-urls=https:\\/\\/0\\.0\\.0\\.0:2379/' \
+          -i /etc/kubernetes/manifests/etcd.yaml
 
         echo 'KUBELET_EXTRA_ARGS="--node-ip #{NODE_IP_ADDR[0]}"' >> /etc/kubernetes/kubeadm.conf
         /etc/init.d/S99kubelet start
+
+        kubeadm alpha phase mark-master
+
+        # kubeadm alpha phase upload-config
+        kubeadm config upload from-flags --apiserver-advertise-address #{NODE_IP_ADDR[0]} \
+          --pod-network-cidr=10.244.0.0/16
+
+        # kubeadm alpha phase kubelet
+        kubeadm config view > /vagrant/kubeadm.yml
+        kubeadm alpha phase kubelet write-env-file --config /vagrant/kubeadm.yml
+        kubeadm alpha phase kubelet config write-to-disk --config /vagrant/kubeadm.yml
+        kubeadm alpha phase kubelet config upload --config /vagrant/kubeadm.yml
+
+        # kubeadm alpha phase patchnode
+        kubectl --kubeconfig /etc/kubernetes/admin.conf annotate nodes master \
+          kubeadm.alpha.kubernetes.io/cri-socket="/var/run/dockershim.sock"
+
+        kubeadm alpha phase bootstrap-token all
+        kubeadm alpha phase addon all --apiserver-advertise-address #{NODE_IP_ADDR[0]} \
+          --pod-network-cidr=10.244.0.0/16
+
+        kubeadm token create --print-join-command > /vagrant/join-command.sh
       EOT
     end
 
@@ -128,8 +211,6 @@ Vagrant.configure(2) do |config|
         while ! kubectl api-versions 2>/dev/null | grep -q "rbac.authorization.k8s.io/v1beta1"; do
           sleep 1
         done
-
-        kubectl apply -f /vagrant/kube-flannel.yml
 
         kubectl completion bash | sudo tee /etc/bash_completion.d/kubectl >/dev/null
       EOT
@@ -147,17 +228,24 @@ Vagrant.configure(2) do |config|
 
       node.vm.provision :shell do |sh|
         sh.inline = <<-EOT
+          mkdir -p /etc/kubernetes/pki/etcd
+          cp /vagrant/etcd-certs/ovs-cni-client.pem     /etc/kubernetes/pki/etcd/ovs-cni-client.crt
+          cp /vagrant/etcd-certs/ovs-cni-client-key.pem /etc/kubernetes/pki/etcd/ovs-cni-client.key
+          cp /vagrant/etcd-certs/ca.crt                 /etc/kubernetes/pki/etcd/ca.crt
+
           sed 's/127\\.0\\.1\\.1.*#{NODE_HOSTNAME[i]}.*/#{NODE_IP_ADDR[i]} #{NODE_HOSTNAME[i]}/' \
             -i /etc/hosts
 
-          KUBEADM_JOIN="$(grep 'kubeadm join' /vagrant/kubeadm.log)"
-          echo "${KUBEADM_JOIN}"
-          setsid ${KUBEADM_JOIN} >/var/log/kubeadm.log 2>&1 &
+          cat /vagrant/join-command.sh
+          setsid sh /vagrant/join-command.sh >/var/log/kubeadm.log 2>&1 &
 
           echo "Waiting for kubeadm to get the certificate for kubelet"
           while [ ! -f /etc/kubernetes/pki/ca.crt ]; do
             sleep 1
           done
+
+          sed 's/"192\\.168\\.65\\.#{100+i}"/"192\\.168\\.65\\.100"/g' \
+            -i /etc/cni/net.d/ovs-cni.conf
 
           echo 'KUBELET_EXTRA_ARGS="--node-ip #{NODE_IP_ADDR[i]}"' >> /etc/kubernetes/kubeadm.conf
           /etc/init.d/S99kubelet start

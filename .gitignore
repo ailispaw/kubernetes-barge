@@ -3,4 +3,8 @@
 
 dl/
 pkg/
-kubeadm.log
+join-command.sh
+
+etcd-certs/*
+!etcd-certs/ca-config.json
+!etcd-certs/client.json
