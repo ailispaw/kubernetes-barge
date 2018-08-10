@@ -144,6 +144,10 @@ Vagrant.configure(2) do |config|
     config.vm.define NODE_HOSTNAME[i] do |node|
       node.vm.hostname = NODE_HOSTNAME[i]
 
+      node.vm.provider :virtualbox do |vb|
+        vb.memory = 2560
+      end
+
       node.vm.network :private_network, ip: NODE_IP_ADDR[i]
 
       node.vm.provision :shell do |sh|

@@ -1,0 +1,10 @@
+apiVersion: "authentication.istio.io/v1alpha1"
+kind: "Policy"
+metadata:
+  name: "productpage-ports-mtls-disabled"
+  namespace: default
+spec:
+  targets:
+  - name: productpage
+    ports:
+    - number: 9080
