@@ -7,20 +7,21 @@ https://github.com/knative/docs/blob/master/install/Knative-with-Minikube.md
 ### Download the Istio release
 
 ```
-[bargee@master ~]$ wget https://github.com/istio/istio/releases/download/1.0.0/istio-1.0.0-linux.tar.gz
-[bargee@master ~]$ tar zxvf istio-1.0.0-linux.tar.gz
+[bargee@master ~]$ wget https://github.com/istio/istio/releases/download/1.0.1/istio-1.0.1-linux.tar.gz
+[bargee@master ~]$ tar zxvf istio-1.0.1-linux.tar.gz
+[bargee@master ~]$ mv istio-1.0.1 istio
 ```
 
 ### Install Istio’s Custom Resource Definitions
 
 ```
-[bargee@master ~]$ kubectl apply -f ./istio-1.0.0/install/kubernetes/helm/istio/templates/crds.yaml
+[bargee@master ~]$ kubectl apply -f ./istio/install/kubernetes/helm/istio/templates/crds.yaml
 ```
 
 ### Install Istio for Knative
 
 ```
-[bargee@master ~]$ wget https://raw.githubusercontent.com/knative/serving/master/third_party/istio-1.0.0/istio.yaml
+[bargee@master ~]$ wget https://raw.githubusercontent.com/knative/serving/master/third_party/istio-1.0.1/istio.yaml
 [bargee@master ~]$ sed 's/LoadBalancer/NodePort/' -i istio.yaml
 [bargee@master ~]$ sed 's/memory: 2048Mi/memory: 512Mi/' -i istio.yaml
 [bargee@master ~]$ kubectl apply -f istio.yaml
