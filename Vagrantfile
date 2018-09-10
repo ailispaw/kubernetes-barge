@@ -13,7 +13,8 @@ BASE_IP_ADDR = "192.168.65"
 
 DOCKER_VERSION = "v17.03.2-ce"
 CNI_VERSION    = "v0.7.1"
-K8S_VERSION    = "v1.11.0"
+CRICTL_VERSION = "v1.11.1"
+K8S_VERSION    = "v1.11.3"
 
 Vagrant.configure(2) do |config|
   config.vm.box = "ailispaw/barge"
@@ -32,7 +33,7 @@ Vagrant.configure(2) do |config|
 
       /etc/init.d/docker restart #{DOCKER_VERSION}
 
-      # https://kubernetes.io/docs/tasks/tools/install-kubeadm
+      # https://kubernetes.io/docs/setup/independent/install-kubeadm/
 
       mkdir -p /vagrant/dl
 
@@ -55,12 +56,12 @@ Vagrant.configure(2) do |config|
       mkdir -p /opt/cni/bin
       tar -xzf /vagrant/dl/cni-plugins-amd64-#{CNI_VERSION}.tgz -C /opt/cni/bin
 
-      if [ ! -f "/vagrant/dl/crictl-#{K8S_VERSION}-linux-amd64.tar.gz" ]; then
-        wget -nv https://github.com/kubernetes-incubator/cri-tools/releases/download/#{K8S_VERSION}/crictl-#{K8S_VERSION}-linux-amd64.tar.gz -O /vagrant/dl/crictl-#{K8S_VERSION}-linux-amd64.tar.gz
+      if [ ! -f "/vagrant/dl/crictl-#{CRICTL_VERSION}-linux-amd64.tar.gz" ]; then
+        wget -nv https://github.com/kubernetes-incubator/cri-tools/releases/download/#{CRICTL_VERSION}/crictl-#{CRICTL_VERSION}-linux-amd64.tar.gz -O /vagrant/dl/crictl-#{CRICTL_VERSION}-linux-amd64.tar.gz
       fi
 
       rm -f /opt/bin/crictl
-      tar -xzf /vagrant/dl/crictl-#{K8S_VERSION}-linux-amd64.tar.gz -C /opt/bin
+      tar -xzf /vagrant/dl/crictl-#{CRICTL_VERSION}-linux-amd64.tar.gz -C /opt/bin
 
       mkdir -p /etc/kubernetes
       cp /vagrant/kubeadm.conf /etc/kubernetes/
