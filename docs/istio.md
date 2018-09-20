@@ -7,9 +7,9 @@ https://istio.io/docs/setup/kubernetes/quick-start/
 ### Download the Istio release
 
 ```
-[bargee@master ~]$ wget https://github.com/istio/istio/releases/download/1.0.1/istio-1.0.1-linux.tar.gz
-[bargee@master ~]$ tar zxvf istio-1.0.1-linux.tar.gz
-[bargee@master ~]$ mv istio-1.0.1 istio
+[bargee@master ~]$ wget https://github.com/istio/istio/releases/download/1.0.2/istio-1.0.2-linux.tar.gz
+[bargee@master ~]$ tar zxvf istio-1.0.2-linux.tar.gz
+[bargee@master ~]$ mv istio-1.0.2 istio
 [bargee@master ~]$ cd istio
 [bargee@master istio]$ export PATH=${PWD}/bin:${PATH}
 ```
