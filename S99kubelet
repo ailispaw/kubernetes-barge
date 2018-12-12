@@ -15,7 +15,6 @@ case "$1" in
         ${KUBELET_DNS_ARGS} \
         ${KUBELET_AUTHZ_ARGS} \
         ${KUBELET_CGROUP_ARGS} \
-        ${KUBELET_CADVISOR_ARGS} \
         ${KUBELET_CERTIFICATE_ARGS} \
         ${KUBELET_EXTRA_ARGS} > /var/log/kubelet.log 2>&1"
 
