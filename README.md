@@ -23,11 +23,11 @@ It will create one Master VM and one Node VM by default.
 
 ```
 $ vagrant ssh master
-Welcome to Barge 2.9.0, Docker version 17.03.2-ce, build f5ec1e2
+Welcome to Barge 2.11.0, Docker version 17.03.2-ce, build f5ec1e2
 [bargee@master ~]$ kubectl get nodes
-NAME      STATUS    ROLES     AGE       VERSION
-master    Ready     master    2m        v1.10.3
-node-01   Ready     <none>    31s       v1.10.3
+NAME      STATUS   ROLES    AGE     VERSION
+master    Ready    master   12m     v1.13.1
+node-01   Ready    <none>   8m38s   v1.13.1
 [bargee@master ~]$ kubectl cluster-info
 Kubernetes master is running at https://192.168.65.100:6443
 KubeDNS is running at https://192.168.65.100:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
@@ -41,19 +41,20 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 [bargee@master ~]$ kubectl create -f /vagrant/samples/sample-pod.yml
 pod/sample-pod created
 [bargee@master ~]$ kubectl get pods
-NAME         READY     STATUS    RESTARTS   AGE
-sample-pod   1/1       Running   0          18s
+NAME         READY   STATUS    RESTARTS   AGE
+sample-pod   1/1     Running   0          45s
 [bargee@master ~]$ kubectl get pods -o wide
-NAME         READY     STATUS    RESTARTS   AGE       IP           NODE
-sample-pod   1/1       Running   0          49s       10.244.1.2   node-01
+NAME         READY   STATUS    RESTARTS   AGE   IP           NODE      NOMINATED NODE   READINESS GATES
+sample-pod   1/1     Running   0          62s   10.244.1.2   node-01   <none>           <none>
 [bargee@master ~]$ kubectl logs sample-pod
 [bargee@master ~]$ kubectl exec -it sample-pod bash
 root@sample-pod:/# ls
-bin  boot  dev  etc  home  lib  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+bin   dev  home  lib64  mnt  proc  run   srv  tmp  var
+boot  etc  lib   media  opt  root  sbin  sys  usr
 root@sample-pod:/# exit
 exit
 [bargee@master ~]$ kubectl port-forward sample-pod 8888:80 >/dev/null 2>&1 &
-[1] 29425
+[1] 7444
 [bargee@master ~]$ wget -qO- http://localhost:8888
 <!DOCTYPE html>
 <html>
@@ -103,10 +104,10 @@ $ vagrant up node-02
 
 ```
 $ vagrant ssh master
-Welcome to Barge 2.9.0, Docker version 17.03.2-ce, build f5ec1e2
+Welcome to Barge 2.11.0, Docker version 17.03.2-ce, build f5ec1e2
 [bargee@master ~]$ kubectl get nodes
-NAME      STATUS    ROLES     AGE       VERSION
-master    Ready     master    5m        v1.10.3
-node-01   Ready     <none>    3m        v1.10.3
-node-02   Ready     <none>    31s       v1.10.3
+NAME      STATUS   ROLES    AGE   VERSION
+master    Ready    master   19m   v1.13.1
+node-01   Ready    <none>   14m   v1.13.1
+node-02   Ready    <none>   52s   v1.13.1
 ```
