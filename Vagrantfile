@@ -13,8 +13,8 @@ BASE_IP_ADDR = "192.168.65"
 
 DOCKER_VERSION = "v17.03.2-ce"
 CNI_VERSION    = "v0.7.4"
-CRICTL_VERSION = "v1.12.0"
-K8S_VERSION    = "v1.12.3"
+CRICTL_VERSION = "v1.13.0"
+K8S_VERSION    = "v1.13.1"
 
 Vagrant.configure(2) do |config|
   config.vm.box = "ailispaw/barge"
@@ -97,6 +97,10 @@ Vagrant.configure(2) do |config|
 
   config.vm.define NODE_HOSTNAME[0] do |node|
     node.vm.hostname = NODE_HOSTNAME[0]
+
+    node.vm.provider :virtualbox do |vb|
+      vb.cpus = 2
+    end
 
     node.vm.network :private_network, ip: NODE_IP_ADDR[0]
 
