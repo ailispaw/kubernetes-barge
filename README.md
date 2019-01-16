@@ -25,9 +25,9 @@ It will create one Master VM and one Node VM by default.
 $ vagrant ssh master
 Welcome to Barge 2.11.0, Docker version 17.03.2-ce, build f5ec1e2
 [bargee@master ~]$ kubectl get nodes
-NAME      STATUS   ROLES    AGE     VERSION
-master    Ready    master   12m     v1.13.1
-node-01   Ready    <none>   8m38s   v1.13.1
+NAME      STATUS   ROLES    AGE    VERSION
+master    Ready    master   103s   v1.13.2
+node-01   Ready    <none>   22s    v1.13.2
 [bargee@master ~]$ kubectl cluster-info
 Kubernetes master is running at https://192.168.65.100:6443
 KubeDNS is running at https://192.168.65.100:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
@@ -49,8 +49,7 @@ sample-pod   1/1     Running   0          62s   10.244.1.2   node-01   <none>   
 [bargee@master ~]$ kubectl logs sample-pod
 [bargee@master ~]$ kubectl exec -it sample-pod bash
 root@sample-pod:/# ls
-bin   dev  home  lib64  mnt  proc  run   srv  tmp  var
-boot  etc  lib   media  opt  root  sbin  sys  usr
+bin  boot  dev	etc  home  lib	lib64  media  mnt  opt	proc  root  run  sbin  srv  sys  tmp  usr  var
 root@sample-pod:/# exit
 exit
 [bargee@master ~]$ kubectl port-forward sample-pod 8888:80 >/dev/null 2>&1 &
@@ -104,10 +103,10 @@ $ vagrant up node-02
 
 ```
 $ vagrant ssh master
-Welcome to Barge 2.11.0, Docker version 17.03.2-ce, build f5ec1e2
+Welcome to Barge 2.11.1, Docker version 17.03.2-ce, build f5ec1e2
 [bargee@master ~]$ kubectl get nodes
-NAME      STATUS   ROLES    AGE   VERSION
-master    Ready    master   19m   v1.13.1
-node-01   Ready    <none>   14m   v1.13.1
-node-02   Ready    <none>   52s   v1.13.1
+NAME      STATUS   ROLES    AGE     VERSION
+master    Ready    master   5m36s   v1.13.2
+node-01   Ready    <none>   4m15s   v1.13.2
+node-02   Ready    <none>   24s     v1.13.2
 ```
