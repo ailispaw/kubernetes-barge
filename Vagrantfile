@@ -14,7 +14,7 @@ BASE_IP_ADDR = "192.168.65"
 DOCKER_VERSION = "v17.03.2-ce"
 CNI_VERSION    = "v0.7.4"
 CRICTL_VERSION = "v1.13.0"
-K8S_VERSION    = "v1.13.2"
+K8S_VERSION    = "v1.13.3"
 
 Vagrant.configure(2) do |config|
   config.vm.box = "ailispaw/barge"

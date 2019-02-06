@@ -23,11 +23,11 @@ It will create one Master VM and one Node VM by default.
 
 ```
 $ vagrant ssh master
-Welcome to Barge 2.11.0, Docker version 17.03.2-ce, build f5ec1e2
+Welcome to Barge 2.11.2, Docker version 17.03.2-ce, build f5ec1e2
 [bargee@master ~]$ kubectl get nodes
-NAME      STATUS   ROLES    AGE    VERSION
-master    Ready    master   103s   v1.13.2
-node-01   Ready    <none>   22s    v1.13.2
+NAME      STATUS   ROLES    AGE   VERSION
+master    Ready    master   60s   v1.13.3
+node-01   Ready    <none>   21s   v1.13.3
 [bargee@master ~]$ kubectl cluster-info
 Kubernetes master is running at https://192.168.65.100:6443
 KubeDNS is running at https://192.168.65.100:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
@@ -42,10 +42,10 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 pod/sample-pod created
 [bargee@master ~]$ kubectl get pods
 NAME         READY   STATUS    RESTARTS   AGE
-sample-pod   1/1     Running   0          45s
+sample-pod   1/1     Running   0          11s
 [bargee@master ~]$ kubectl get pods -o wide
 NAME         READY   STATUS    RESTARTS   AGE   IP           NODE      NOMINATED NODE   READINESS GATES
-sample-pod   1/1     Running   0          62s   10.244.1.2   node-01   <none>           <none>
+sample-pod   1/1     Running   0          23s   10.244.1.2   node-01   <none>           <none>
 [bargee@master ~]$ kubectl logs sample-pod
 [bargee@master ~]$ kubectl exec -it sample-pod bash
 root@sample-pod:/# ls
@@ -53,7 +53,7 @@ bin  boot  dev	etc  home  lib	lib64  media  mnt  opt	proc  root  run  sbin  srv 
 root@sample-pod:/# exit
 exit
 [bargee@master ~]$ kubectl port-forward sample-pod 8888:80 >/dev/null 2>&1 &
-[1] 7444
+[1] 2912
 [bargee@master ~]$ wget -qO- http://localhost:8888
 <!DOCTYPE html>
 <html>
@@ -103,10 +103,10 @@ $ vagrant up node-02
 
 ```
 $ vagrant ssh master
-Welcome to Barge 2.11.1, Docker version 17.03.2-ce, build f5ec1e2
+Welcome to Barge 2.11.2, Docker version 17.03.2-ce, build f5ec1e2
 [bargee@master ~]$ kubectl get nodes
 NAME      STATUS   ROLES    AGE     VERSION
-master    Ready    master   5m36s   v1.13.2
-node-01   Ready    <none>   4m15s   v1.13.2
-node-02   Ready    <none>   24s     v1.13.2
+master    Ready    master   4m37s   v1.13.3
+node-01   Ready    <none>   3m58s   v1.13.3
+node-02   Ready    <none>   28s     v1.13.3
 ```
