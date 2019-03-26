@@ -23,11 +23,11 @@ It will create one Master VM and one Node VM by default.
 
 ```
 $ vagrant ssh master
-Welcome to Barge 2.11.2, Docker version 17.03.2-ce, build f5ec1e2
+Welcome to Barge 2.12.0, Docker version 17.03.2-ce, build f5ec1e2
 [bargee@master ~]$ kubectl get nodes
 NAME      STATUS   ROLES    AGE   VERSION
-master    Ready    master   60s   v1.13.3
-node-01   Ready    <none>   21s   v1.13.3
+master    Ready    master   61s   v1.13.5
+node-01   Ready    <none>   21s   v1.13.5
 [bargee@master ~]$ kubectl cluster-info
 Kubernetes master is running at https://192.168.65.100:6443
 KubeDNS is running at https://192.168.65.100:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
@@ -53,7 +53,7 @@ bin  boot  dev	etc  home  lib	lib64  media  mnt  opt	proc  root  run  sbin  srv 
 root@sample-pod:/# exit
 exit
 [bargee@master ~]$ kubectl port-forward sample-pod 8888:80 >/dev/null 2>&1 &
-[1] 2912
+[1] 4600
 [bargee@master ~]$ wget -qO- http://localhost:8888
 <!DOCTYPE html>
 <html>
@@ -80,7 +80,7 @@ Commercial support is available at
 <p><em>Thank you for using nginx.</em></p>
 </body>
 </html>
-[bargee@master ~]$ kill 29425
+[bargee@master ~]$ kill 4600
 [bargee@master ~]$ kubectl delete -f /vagrant/samples/sample-pod.yml
 pod "sample-pod" deleted
 [bargee@master ~]$ kubectl get pods
@@ -103,10 +103,10 @@ $ vagrant up node-02
 
 ```
 $ vagrant ssh master
-Welcome to Barge 2.11.2, Docker version 17.03.2-ce, build f5ec1e2
+Welcome to Barge 2.12.0, Docker version 17.03.2-ce, build f5ec1e2
 [bargee@master ~]$ kubectl get nodes
 NAME      STATUS   ROLES    AGE     VERSION
-master    Ready    master   4m37s   v1.13.3
-node-01   Ready    <none>   3m58s   v1.13.3
-node-02   Ready    <none>   28s     v1.13.3
+master    Ready    master   4m18s   v1.13.5
+node-01   Ready    <none>   3m38s   v1.13.5
+node-02   Ready    <none>   21s     v1.13.5
 ```
