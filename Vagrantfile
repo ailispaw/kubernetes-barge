@@ -8,7 +8,7 @@ module VagrantPlugins
   end
 end
 
-NUM_OF_NODES = 1
+NUM_OF_NODES = 2
 BASE_IP_ADDR = "192.168.65"
 
 DOCKER_VERSION = "v17.03.2-ce"

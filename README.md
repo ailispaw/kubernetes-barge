@@ -23,11 +23,11 @@ It will create one Master VM and one Node VM by default.
 
 ```
 $ vagrant ssh master
-Welcome to Barge 2.12.0, Docker version 17.03.2-ce, build f5ec1e2
+Welcome to Barge 2.12.1, Docker version 17.03.2-ce, build f5ec1e2
 [bargee@master ~]$ kubectl get nodes
 NAME      STATUS   ROLES    AGE   VERSION
-master    Ready    master   61s   v1.13.5
-node-01   Ready    <none>   21s   v1.13.5
+master    Ready    master   65s   v1.14.1
+node-01   Ready    <none>   21s   v1.14.1
 [bargee@master ~]$ kubectl cluster-info
 Kubernetes master is running at https://192.168.65.100:6443
 KubeDNS is running at https://192.168.65.100:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
@@ -103,10 +103,10 @@ $ vagrant up node-02
 
 ```
 $ vagrant ssh master
-Welcome to Barge 2.12.0, Docker version 17.03.2-ce, build f5ec1e2
+Welcome to Barge 2.12.1, Docker version 17.03.2-ce, build f5ec1e2
 [bargee@master ~]$ kubectl get nodes
 NAME      STATUS   ROLES    AGE     VERSION
-master    Ready    master   4m18s   v1.13.5
-node-01   Ready    <none>   3m38s   v1.13.5
-node-02   Ready    <none>   21s     v1.13.5
+master    Ready    master   4m41s   v1.14.1
+node-01   Ready    <none>   3m57s   v1.14.1
+node-02   Ready    <none>   21s     v1.14.1
 ```
