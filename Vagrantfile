@@ -13,8 +13,8 @@ BASE_IP_ADDR = "192.168.65"
 
 DOCKER_VERSION = "v17.03.2-ce"
 CNI_VERSION    = "v0.7.5"
-CRICTL_VERSION = "v1.13.0"
-K8S_VERSION    = "v1.13.5"
+CRICTL_VERSION = "v1.14.0"
+K8S_VERSION    = "v1.14.1"
 
 Vagrant.configure(2) do |config|
   config.vm.box = "ailispaw/barge"
@@ -155,7 +155,7 @@ Vagrant.configure(2) do |config|
           sed 's/127\\.0\\.1\\.1.*#{NODE_HOSTNAME[i]}.*/#{NODE_IP_ADDR[i]} #{NODE_HOSTNAME[i]}/' \
             -i /etc/hosts
 
-          KUBEADM_JOIN="$(grep 'kubeadm join' /vagrant/kubeadm.log)"
+          KUBEADM_JOIN="$(sed -n 'N;s/\\\\\\n/ /;/kubeadm join/p' /vagrant/kubeadm.log)"
           echo "${KUBEADM_JOIN}"
           setsid ${KUBEADM_JOIN} >/var/log/kubeadm.log 2>&1 &
 
