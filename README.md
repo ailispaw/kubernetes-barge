@@ -26,8 +26,8 @@ $ vagrant ssh master
 Welcome to Barge 2.12.1, Docker version 17.03.2-ce, build f5ec1e2
 [bargee@master ~]$ kubectl get nodes
 NAME      STATUS   ROLES    AGE   VERSION
-master    Ready    master   65s   v1.14.1
-node-01   Ready    <none>   21s   v1.14.1
+master    Ready    master   50s   v1.14.3
+node-01   Ready    <none>   20s   v1.14.3
 [bargee@master ~]$ kubectl cluster-info
 Kubernetes master is running at https://192.168.65.100:6443
 KubeDNS is running at https://192.168.65.100:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
