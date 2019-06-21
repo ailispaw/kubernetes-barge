@@ -155,9 +155,9 @@ Vagrant.configure(2) do |config|
           sed 's/127\\.0\\.1\\.1.*#{NODE_HOSTNAME[i]}.*/#{NODE_IP_ADDR[i]} #{NODE_HOSTNAME[i]}/' \
             -i /etc/hosts
 
-          KUBEADM_JOIN="$(sed -n 'N;s/\\\\\\n/ /;/kubeadm join/p' /vagrant/kubeadm.log)"
+          KUBEADM_JOIN="$(sed -n '/^kubeadm join/,+1p' /vagrant/kubeadm.log)"
           echo "${KUBEADM_JOIN}"
-          setsid ${KUBEADM_JOIN} >/var/log/kubeadm.log 2>&1 &
+          setsid $(echo ${KUBEADM_JOIN} | sed 's/\\\\ //') >/var/log/kubeadm.log 2>&1 &
 
           echo "Waiting for kubeadm to get the certificate for kubelet"
           while [ ! -f /etc/kubernetes/pki/ca.crt ]; do
