@@ -10,12 +10,8 @@ case "$1" in
     start-stop-daemon -S -q -m -b -p /var/run/kubelet.pid --startas /bin/bash -- -c \
       "exec /opt/bin/kubelet \
         ${KUBELET_KUBECONFIG_ARGS} \
-        ${KUBELET_SYSTEM_PODS_ARGS} \
+        ${KUBELET_CONFIG_ARGS} \
         ${KUBELET_NETWORK_ARGS} \
-        ${KUBELET_DNS_ARGS} \
-        ${KUBELET_AUTHZ_ARGS} \
-        ${KUBELET_CGROUP_ARGS} \
-        ${KUBELET_CERTIFICATE_ARGS} \
         ${KUBELET_EXTRA_ARGS} > /var/log/kubelet.log 2>&1"
 
     [ $? -eq 0 ] && echo "OK" || echo "FAIL"
