@@ -81,6 +81,7 @@ Vagrant.configure(2) do |config|
         pkg build util-linux -e BR2_PACKAGE_UTIL_LINUX_SCHEDUTILS=y && \
         cd /opt/pkg/${VERSION}/ && \
         mv barge-pkg-util-linux-${VERSION}.tar.gz barge-pkg-schedutils-${VERSION}.tar.gz)
+      pkg build conntrack-tools
       mkdir -p /vagrant/pkg/
       cp /opt/pkg/${VERSION}/barge-pkg-*-${VERSION}.tar.gz /vagrant/pkg/
 
